@@ -9,5 +9,5 @@ $ make
 $ pipenv python app.py
 
 To run tests do:
-$ make tests
+$ make test
 ```
