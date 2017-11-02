@@ -20,6 +20,7 @@ from .utility import CaseInsensitiveDict
 from .utility import get_headers, status_code, get_dict, get_request_range, check_basic_auth, check_digest_auth, \
     secure_cookie, ROBOT_TXT, ANGRY_ASCII, parse_multi_value_header, next_stale_after_value, \
     digest_challenge_response
+from .blueprints.cesium_blueprint import cesium_page
 
 
 def jsonify(*args, **kwargs):
@@ -765,6 +766,10 @@ def xml():
     response.headers["Content-Type"] = "application/xml"
     return response
 
+##############################
+# Register blueprints
+##############################
+app.register_blueprint(cesium_page, url_prefix="/cesium")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
