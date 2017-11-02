@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.0"
+   width="343pt"
+   height="340pt"
+   id="svg2178">
+  <defs
+     id="defs2180">
+    <filter
+       id="filter3260">
+      <feGaussianBlur
+         id="feGaussianBlur3262"
+         stdDeviation="0.67076106"
+         inkscape:collect="always" />
+    </filter>
+  </defs>
+  <g
+     id="layer1">
+    <text
+       x="71.948334"
+       y="268.42532"
+       transform="scale(0.7730049,1.2936528)"
+       style="font-size:23.58475113px;font-style:normal;font-weight:normal;fill:#767aa0;fill-opacity:1;stroke:#a3d1e2;stroke-width:3.75;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;filter:url(#filter3260);font-family:Bitstream Vera Sans"
+       id="text2187"
+       xml:space="preserve"><tspan
+         x="71.948334"
+         y="268.42532"
+         style="font-size:283.01708984px;fill:#767aa0;fill-opacity:1;stroke:#a3d1e2;stroke-width:3.75;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;font-family:Starcraft"
+         id="tspan2189">SC</tspan></text>
+  </g>
+</svg>

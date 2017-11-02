@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='us-ascii'?>
+
+<slideshow
+    title="XML slideshow"
+    date="Date of publication"
+    author="El rey"
+    >
+
+    <!-- TITLE SLIDE -->
+    <slide type="all">
+      <title>This should be the title</title>
+    </slide>
+
+    <slide type="all">
+        <title>Content</title>
+        <item>This is item number <em>one</em> fool</item>
+        <item/>
+        <item>Item <em>number</em> two!</item>
+    </slide>
+
+</slideshow>
