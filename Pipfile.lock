@@ -1,19 +1,19 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c0d729dd00de4940fd4592fc490889873a73c1c71e00f4656a65014c1b70248e"
+            "sha256": "da640c2b19d97174423a00bd6c974cb171cd94d510933dd760ab7289e3529739"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
-            "implementation_version": "3.6.3",
+            "implementation_version": "0",
             "os_name": "nt",
             "platform_machine": "AMD64",
             "platform_python_implementation": "CPython",
             "platform_release": "10",
             "platform_system": "Windows",
             "platform_version": "10.0.15063",
-            "python_full_version": "3.6.3",
-            "python_version": "3.6",
+            "python_full_version": "2.7.12",
+            "python_version": "2.7",
             "sys_platform": "win32"
         },
         "pipfile-spec": 6,
@@ -69,6 +69,7 @@
                 "sha256:463f8483208e921368c9f306094eb6f725c6ca42b0f97e313cb5d5512459feda",
                 "sha256:48eb22f4f8461b1df5734a074b57042430fb06e1d61bd1e11b078c0fe6d7a1f1"
             ],
+            "markers": "sys_platform == 'win32'",
             "version": "==0.3.9"
         },
         "crayons": {
@@ -98,6 +99,12 @@
                 "sha256:49f44461237b69ecd901cc7ce66feea0319b9158743dd27a2899962ab214dac1"
             ],
             "version": "==0.12.2"
+        },
+        "flask-assets": {
+            "hashes": [
+                "sha256:6031527b89fb3509d1581d932affa5a79dd348cfffb58d0aef99a43461d47847"
+            ],
+            "version": "==0.12"
         },
         "flask-cache": {
             "hashes": [
@@ -276,6 +283,12 @@
                 "sha256:05a2908f7fb1ba8843f03b2360d6ad314dbf2bce4644feb702ccd38527e13059"
             ],
             "version": "==1.4"
+        },
+        "webassets": {
+            "hashes": [
+                "sha256:e7d9c8887343123fd5b32309b33167428cb1318cdda97ece12d0907fd69d38db"
+            ],
+            "version": "==0.12.1"
         },
         "werkzeug": {
             "hashes": [

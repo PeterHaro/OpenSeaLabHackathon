@@ -21,6 +21,7 @@ gunicorn = "*"
 whitenoise = "*"
 decorator = "*"
 brotli = "*"
+flask-assets = "*"
 
 
 [requires]

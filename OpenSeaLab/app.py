@@ -8,6 +8,7 @@ import time
 import uuid
 
 from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for
+from flask.ext import assets
 from six.moves import range as xrange
 from werkzeug.datastructures import MultiDict
 from werkzeug.http import http_date
@@ -49,6 +50,13 @@ app = Flask(__name__, template_folder=template_directory)
 app.debug = bool(os.environ.get('DEBUG'))
 
 common = Common(app)
+env = assets.Environment(app)
+env.load_path = [
+    os.path.join(os.path.dirname(__file__), 'sass'),
+    os.path.join(os.path.dirname(__file__), 'coffee'),
+    os.path.join(os.path.dirname(__file__), 'bower_components'),
+]
+
 
 
 # -----------
@@ -67,7 +75,6 @@ def set_cors_headers(response):
         if request.headers.get('Access-Control-Request-Headers') is not None:
             response.headers['Access-Control-Allow-Headers'] = request.headers['Access-Control-Request-Headers']
     return response
-
 
 # ====================
 # Routes

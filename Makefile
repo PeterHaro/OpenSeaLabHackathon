@@ -33,9 +33,11 @@ test: $(TEST_OBJECTS)
 init:
 	# python setup.py install 
 	pipenv install
-	
+	npm install
+	gem install sass
 init-dev:
 	pipenv install --dev
+	npm install --dev
 run:
 	pipenv run python __main__.py
 docs:

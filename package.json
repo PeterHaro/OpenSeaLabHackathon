@@ -1,0 +1,32 @@
+{
+  "name": "opensealab",
+  "version": "0.0.1",
+  "description": "OpenSeaLab hackathon code",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PeterHaro/OpenSeaLabHackathon.git"
+  },
+  "keywords": [
+    "Marine",
+    "data",
+    "visualization"
+  ],
+  "author": "Peter Haro",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/PeterHaro/OpenSeaLabHackathon/issues"
+  },
+  "homepage": "https://github.com/PeterHaro/OpenSeaLabHackathon#readme",
+  "dependencies": {
+    "cesiumjs": "1.10.0",
+    "materialize-css": "0.100.2"
+  }
+}
