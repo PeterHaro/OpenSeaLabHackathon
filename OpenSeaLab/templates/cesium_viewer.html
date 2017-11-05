@@ -21,7 +21,8 @@
     <!--    <link rel="apple-touch-icon" sizes="120x120" href="/iphone-icon.png"/>
         <link rel="apple-touch-icon" sizes="152x152" href="/ipad-icon.png"/> -->
     <!-- <link rel="stylesheet" type="text/css" href="./styles.min.css"/> -->
-    <link rel="stylesheet" type="text/css" href="../../node_modules/materialize-css/dist/css/materialize.min.css"/>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}"/>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}"/>
     <link rel="alternate" hreflang="x-default" href="https://peterharo.github.io/"/>
     <link rel="alternate" hreflang="no" href="https://peterharo.github.io//no"/>
 
@@ -69,7 +70,7 @@
     <div class="footer-copyright">
         <div class="container">
             © 2016-2017 SINTEF, All rights reserved
-            <a class="grey-text text-lighten-4 right" href="https://www.gnu.org/licenses/agpl-3.0-standalone.html">LICENSE>
+            <a class="grey-text text-lighten-4 right" href="https://www.gnu.org/licenses/agpl-3.0-standalone.html">
                 LICENSE</a>
         </div>
     </div>

@@ -1,0 +1,23 @@
+.fixed-announcement {
+    position: relative;
+    height: 48px;
+    width: 100%;
+    z-index: 999;
+}
+
+.fixed-announcement .announcement {
+    position: absolute;
+    height: inherit;
+    width: inherit;
+    background-color: #5c5757;
+}
+
+.fixed-announcement .announcement .container {
+    color: #fff;
+    padding: 14px 0;
+    font-size: .9rem;
+}
+
+.fixed-announcement .announcement .container a {
+    color: #32b9fb;
+}

@@ -8,7 +8,6 @@ import time
 import uuid
 
 from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for
-from flask.ext import assets
 from six.moves import range as xrange
 from werkzeug.datastructures import MultiDict
 from werkzeug.http import http_date
@@ -16,12 +15,12 @@ from werkzeug.http import parse_authorization_header
 from werkzeug.wrappers import BaseResponse
 
 from . import filters
+from .blueprints.cesium_blueprint import cesium_page
 from .flask_common import Common
 from .utility import CaseInsensitiveDict
 from .utility import get_headers, status_code, get_dict, get_request_range, check_basic_auth, check_digest_auth, \
     secure_cookie, ROBOT_TXT, ANGRY_ASCII, parse_multi_value_header, next_stale_after_value, \
     digest_challenge_response
-from .blueprints.cesium_blueprint import cesium_page
 
 
 def jsonify(*args, **kwargs):
@@ -45,18 +44,12 @@ ENV_COOKIES = (
 # Prevent WSGI from correcting the casing of the Location header
 BaseResponse.autocorrect_location_header = False
 template_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+static_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 print(template_directory)
-app = Flask(__name__, template_folder=template_directory)
+app = Flask(__name__, template_folder=template_directory, static_folder=static_directory)
 app.debug = bool(os.environ.get('DEBUG'))
 
 common = Common(app)
-env = assets.Environment(app)
-env.load_path = [
-    os.path.join(os.path.dirname(__file__), 'sass'),
-    os.path.join(os.path.dirname(__file__), 'coffee'),
-    os.path.join(os.path.dirname(__file__), 'bower_components'),
-]
-
 
 
 # -----------
@@ -76,6 +69,7 @@ def set_cors_headers(response):
             response.headers['Access-Control-Allow-Headers'] = request.headers['Access-Control-Request-Headers']
     return response
 
+
 # ====================
 # Routes
 # ====================
@@ -85,17 +79,20 @@ def get_registered_endpoints():
     """Generates an overview over the registered http endpoints"""
     return render_template("registered_endpoints.html")
 
+
 @app.route('/')
 def view_landing_page():
     """Generates Landing Page."""
     tracking_enabled = 'tracking_enabled' in os.environ
     return render_template('index.html', tracking_enabled=tracking_enabled)
 
+
 @app.route('/html')
 def view_html_page():
     """Simple Html Page"""
 
     return render_template('test_templates/html5_test.html')
+
 
 @app.route('/robots.txt')
 def view_robots_page():
@@ -772,6 +769,7 @@ def xml():
     response = make_response(render_template("test_templates/xml_test.xml"))
     response.headers["Content-Type"] = "application/xml"
     return response
+
 
 ##############################
 # Register blueprints
