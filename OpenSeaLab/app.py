@@ -16,11 +16,14 @@ from werkzeug.wrappers import BaseResponse
 
 from . import filters
 from .blueprints.cesium_blueprint import cesium_page
+from .blueprints.h2020_blueprint import horizon_blueprint
 from .flask_common import Common
 from .utility import CaseInsensitiveDict
 from .utility import get_headers, status_code, get_dict, get_request_range, check_basic_auth, check_digest_auth, \
     secure_cookie, ROBOT_TXT, ANGRY_ASCII, parse_multi_value_header, next_stale_after_value, \
     digest_challenge_response
+
+H2020_DEBUG = True
 
 
 def jsonify(*args, **kwargs):
@@ -775,6 +778,9 @@ def xml():
 # Register blueprints
 ##############################
 app.register_blueprint(cesium_page, url_prefix="/cesium")
+if H2020_DEBUG:
+    app.register_blueprint(horizon_blueprint, url_prefix="/h2020")
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html itemscope itemtype="http://schema.org/Map" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport'/>
+    <meta name="viewport" content="width=device-width"/>
+
+    <title>Horizon 2020 Visualization</title>
+    <meta itemprop="name" content="Horizon 2020 Visualization"/>
+    <meta itemprop="description" name="description" content="Data visualization application"/>
+    <meta itemprop="author" name="author" content="Peter Haro"/>
+
+    <meta property="og:type" content="website"/>
+    <meta property="og:title" content="Horizon 2020 Visualization"/>
+    <meta property="og:description" content="Data visualization application"/>
+    <meta property="og:url" content="https://peterharo.github.io/"/>
+    <meta property="og:image" content="https://peterharo.github.io/h2020"/>
+
+    <link rel="shortcut icon" href="/favicon.ico"/>
+    <!--    <link rel="apple-touch-icon" sizes="120x120" href="/iphone-icon.png"/>
+        <link rel="apple-touch-icon" sizes="152x152" href="/ipad-icon.png"/> -->
+    <!-- <link rel="stylesheet" type="text/css" href="./styles.min.css"/> -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}"/>
+    <link rel="alternate" hreflang="x-default" href="https://peterharo.github.io/"/>
+    <link rel="alternate" hreflang="no" href="https://peterharo.github.io//no"/>
+
+    <!-- TESTING JAVASCRIPT FOR H2020 VIZ -->
+    <script src="{{ url_for('static', filename='javascript/d3.min.js') }}" type="text/javascript"></script>
+    <script src="{{ url_for('static', filename='javascript/crossfilter.min.js') }}" type="text/javascript"></script>
+    <script src="{{ url_for('static', filename='javascript/dc.min.js') }}" type="text/javascript"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+            integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+
+
+</head>
+<body data-lang="en">
+
+<!--[if lt IE 8]>
+<p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade
+    your browser</a> to improve your experience.</p>
+<![endif]-->
+
+<header>
+    <!-- Announcements -->
+    <div class="fixed-announcement">
+        <div class="announcement">
+            <div class="container">Horizon 2020 Visualization is basically pre-pre alpha. Its just a test, please see <a
+                    href='https://github.com/peterharo/OpenSeaLabHackathon'> GitHub repository</a> for more information.
+            </div>
+        </div>
+    </div>
+    <!-- Top navbar -->
+    <nav class="top-nav">
+        <div class="container">
+            <div class="nav-wrapper">
+                <a class="plage-title">H2020 - Propsal navigator</a>
+            </div>
+        </div>
+    </nav>
+    <div class="container"><a href="#" data-activates="nav-mobile"
+                              class="button-collapse top-nav waves-effect waves-light circle hide-on-large-only"><i
+            class="material-icons">menu</i></a>
+    </div>
+</header>
+<main>
+    <div class="container">
+        <div class="row">
+            <div class="col s12">
+                <div class="row">
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">search</i>
+                        <input type="text" id="autocomplete-input" class="autocomplete">
+                        <label for="autocomplete-input">Programme title</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <!-- Charts -->
+                <div id="programme-bar-chart">
+                    <strong>Programme by the number of proposals</strong>
+                    <a class="reset" href="javascript:proposalsInProgramBarChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+            <!-- END CHARTS -->
+        </div>
+
+
+    </div>
+</main>
+
+<footer class="page-footer">
+    <div class="footer-copyright">
+        <div class="container">
+            © 2016-2017 SINTEF, All rights reserved
+            <a class="grey-text text-lighten-4 right" href="https://www.gnu.org/licenses/agpl-3.0-standalone.html">
+                LICENSE</a>
+        </div>
+    </div>
+</footer>
+//<script src="{{ url_for('static', filename='javascript/h2020_test.js') }}" type="text/javascript"></script>
+<script>
+    var debug = true;
+var proposalsInProgramBarChart = dc.rowChart("#programme-bar-chart");
+
+// LOAD DATA
+
+$.getJSON("/h2020/get_data", {}).done(function (data) {
+    $.each(data.items, function (i, item) {
+
+    });
+    var ndx = crossfilter(data);
+    var all = ndx.groupAll();
+
+    var programmeNameDimension = ndx.dimension(function (d) {
+        return d.Programme;
+    });
+    var programmeGroup = programmeNameDimension.group();
+
+    proposalsInProgramBarChart/* dc.rowChart('#day-of-week-chart', 'chartGroup') */
+        .width(180)
+        .height(180)
+        .margins({top: 20, left: 10, right: 10, bottom: 20})
+        .group(programmeGroup)
+        .dimension(programmeNameDimension)
+        // Assign colors to each value in the x scale domain
+        .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
+        .label(function (d) {
+            return d.key.split('.')[1];
+        })
+        // Title sets the row text
+        .title(function (d) {
+            return d.value;
+        })
+        .elasticX(true)
+        .xAxis().ticks(4);
+
+
+    //simply call `.renderAll()` to render all charts on the page
+    dc.renderAll();
+    /*
+    // Or you can render charts belonging to a specific chart group
+    dc.renderAll('group');
+    // Once rendered you can call `.redrawAll()` to update charts incrementally when the data
+    // changes, without re-rendering everything
+    dc.redrawAll();
+    // Or you can choose to redraw only those charts associated with a specific chart group
+    dc.redrawAll('group');
+    */
+});
+
+
+</script>
+</body>
+</html>
