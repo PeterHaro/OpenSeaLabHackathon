@@ -22,9 +22,21 @@
         <link rel="apple-touch-icon" sizes="152x152" href="/ipad-icon.png"/> -->
     <!-- <link rel="stylesheet" type="text/css" href="./styles.min.css"/> -->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}"/>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}"/>
     <link rel="alternate" hreflang="x-default" href="https://peterharo.github.io/"/>
     <link rel="alternate" hreflang="no" href="https://peterharo.github.io//no"/>
+
+    <!-- Cesium styles are recommended to be imported this way.... -->
+    <style>
+        @import url("{{ url_for('static', filename='cesium-1.39/Build/Cesium/Widgets/widgets.css') }}");
+        html, body, #cesiumContainer {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+    </style>
+
 
 </head>
 <body data-lang="en">
@@ -60,7 +72,7 @@
     <div class="container">
         <!-- TODO: ADD MAP -->
         <div class="row">
-
+            <div id="cesiumContainer"></div>
         </div>
 
     </div>
@@ -75,5 +87,15 @@
         </div>
     </div>
 </footer>
+
+<!-- JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+<script src="{{ url_for('static', filename='cesium-1.39/Build/Cesium/Cesium.js') }}"></script>
+<script src="{{ url_for('static', filename='javascript/OpenSeaLab/GribAnimator.js') }}"></script>
+<script>
+    var viewer = new Cesium.Viewer('cesiumContainer');
+
+</script>
+
 </body>
 </html>

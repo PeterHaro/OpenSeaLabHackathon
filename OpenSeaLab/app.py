@@ -73,6 +73,10 @@ def set_cors_headers(response):
     return response
 
 
+@app.context_processor
+def inject_debug():
+    return dict(debug=app.debug)
+
 # ====================
 # Routes
 # ====================

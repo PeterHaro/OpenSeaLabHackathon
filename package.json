@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/PeterHaro/OpenSeaLabHackathon#readme",
   "dependencies": {
+    "cesium": "1.39.0",
     "cesiumjs": "1.10.0",
     "materialize-css": "0.100.2"
   }

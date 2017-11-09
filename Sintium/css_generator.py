@@ -13,7 +13,7 @@ class CSSGenerator(object):
     OUTPUT_MINIFIED_FILENAME = "styles.min.css"
     OUTPUT_MAP_FILENAME = OUTPUT_FILENAME + ".map"
 
-    def __init__(self, is_debug=False, root_directory="../private/scss/", output_directory="../OpenSeaLab/templates/",
+    def __init__(self, is_debug=False, root_directory="../private/scss/", output_directory="../OpenSeaLab/static/",
                  yui_compressor_path="../private/external/yuicompressor/yuicompressor-2.4.8.jar"):
         self.root_directory = root_directory
         self.output_directory = output_directory
