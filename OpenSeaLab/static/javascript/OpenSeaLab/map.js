@@ -133,100 +133,6 @@
         entities.suspendEvents();
         entities.removeAll();
 
-        // for each nation defined in nations_geo.json, create a polyline at that lat, lon
-        for (var i = 0; i < data.length; i++) {
-            var nation = data[i];
-            var surfacePosition = Cesium.Cartesian3.fromDegrees(nation.lon, nation.lat, 0.0);
-
-            // Construct Wealth related Properties
-            var wealth = new Cesium.SampledPositionProperty();
-            var sampledWealth = new Cesium.SampledProperty(Number);
-            var heightPosition = Cesium.Cartesian3.fromDegrees(nation.lon, nation.lat, this._wealthScale(nation.income[0][1]), ellipsoid, cartesian3Scratch);
-            wealth.addSample(Cesium.JulianDate.fromIso8601("1799"), heightPosition);
-            sampledWealth.addSample(Cesium.JulianDate.fromIso8601("1799"), nation.income[0][1]);
-            for (var j = 0; j < nation.income.length; j++) {
-                var year = nation.income[j][0];
-                var income = nation.income[j][1];
-                heightPosition = Cesium.Cartesian3.fromDegrees(nation.lon, nation.lat, this._wealthScale(income), ellipsoid, cartesian3Scratch);
-                wealth.addSample(Cesium.JulianDate.fromIso8601(year.toString()), heightPosition);
-                sampledWealth.addSample(Cesium.JulianDate.fromIso8601(year.toString()), income);
-            }
-            wealth.addSample(Cesium.JulianDate.fromIso8601("2010"), surfacePosition);
-            sampledWealth.addSample(Cesium.JulianDate.fromIso8601("2010"), 0.0);
-
-            // Construct Health related Properties
-            var health = new Cesium.SampledPositionProperty();
-            var sampledHealth = new Cesium.SampledProperty(Number);
-            heightPosition = Cesium.Cartesian3.fromDegrees(nation.lon, nation.lat, this._healthScale(nation.lifeExpectancy[0][1]), ellipsoid, cartesian3Scratch);
-            health.addSample(Cesium.JulianDate.fromIso8601("1799"), heightPosition);
-            sampledHealth.addSample(Cesium.JulianDate.fromIso8601("1799"), nation.lifeExpectancy[0][1]);
-            for (var j = 0; j < nation.lifeExpectancy.length; j++) {
-                var year = nation.lifeExpectancy[j][0];
-                var lifeExpectancy = nation.lifeExpectancy[j][1];
-                heightPosition = Cesium.Cartesian3.fromDegrees(nation.lon, nation.lat, this._healthScale(lifeExpectancy), ellipsoid, cartesian3Scratch);
-                health.addSample(Cesium.JulianDate.fromIso8601(year.toString()), heightPosition);
-                sampledHealth.addSample(Cesium.JulianDate.fromIso8601(year.toString()), lifeExpectancy);
-            }
-            health.addSample(Cesium.JulianDate.fromIso8601("2010"), surfacePosition);
-            sampledHealth.addSample(Cesium.JulianDate.fromIso8601("2010"), 0.0);
-
-            // Construct Population related Properties
-            var populationWidth = new Cesium.SampledProperty(Number);
-            var sampledPopulation = new Cesium.SampledProperty(Number);
-            populationWidth.addSample(Cesium.JulianDate.fromIso8601("1799"), this._populationScale(nation.population[0][1]));
-            sampledPopulation.addSample(Cesium.JulianDate.fromIso8601("1799"), nation.population[0][1]);
-            var population = 0.0;
-            for (var j = 0; j < nation.population.length; j++) {
-                var year = nation.population[j][0];
-                population = nation.population[j][1];
-                populationWidth.addSample(Cesium.JulianDate.fromIso8601(year.toString()), this._populationScale(population));
-                sampledPopulation.addSample(Cesium.JulianDate.fromIso8601(year.toString()), population);
-            }
-            populationWidth.addSample(Cesium.JulianDate.fromIso8601("2010"), this._populationScale(population));
-            sampledPopulation.addSample(Cesium.JulianDate.fromIso8601("2010"), population);
-
-            var polyline = new Cesium.PolylineGraphics();
-            polyline.show = new Cesium.ConstantProperty(true);
-            var outlineMaterial = new Cesium.PolylineOutlineMaterialProperty();
-            outlineMaterial.color = new Cesium.ConstantProperty(Cesium.Color.fromCssColorString(this._colorScale(nation.region)));
-            outlineMaterial.outlineColor = new Cesium.ConstantProperty(new Cesium.Color(0.0, 0.0, 0.0, 1.0));
-            outlineMaterial.outlineWidth = new Cesium.ConstantProperty(3.0);
-            polyline.material = outlineMaterial;
-            polyline.width = populationWidth;
-            polyline.followSurface = new Cesium.ConstantProperty(false);
-
-            var entity = new Cesium.Entity(nation.name);
-            entity.polyline = polyline;
-            polyline.positions = new Cesium.PositionPropertyArray([new Cesium.ConstantPositionProperty(surfacePosition), health]);
-
-            // Add data properties to entity
-            entity.addProperty('region');
-            entity.region = nation.region;
-            entity.addProperty('wealth');
-            entity.wealth = wealth;
-            entity.addProperty('health');
-            entity.health = health;
-            entity.addProperty('surfacePosition');
-            entity.surfacePosition = surfacePosition;
-            entity.addProperty('nationData');
-            entity.nationData = nation;
-            entity.addProperty('lifeExpectancy');
-            entity.lifeExpectancy = sampledHealth;
-            entity.addProperty('income');
-            entity.income = sampledWealth;
-            entity.addProperty('population');
-            entity.population = sampledPopulation;
-            //entity.description = new Cesium.ConstantProperty("foo");
-
-            // if we wanted to use points instead ...
-            //entity.position = wealth;
-            //entity.point = new Cesium.PointGraphics();
-            //entity.point.pixelSize = new Cesium.ConstantProperty(5);
-
-            //Add the entity to the collection.
-            entities.add(entity);
-        }
-
         //Once all data is processed, call resumeEvents and raise the changed event.
         entities.resumeEvents();
         this._changed.raiseEvent(this);
@@ -242,29 +148,7 @@
 
     OpenSeaLabCesiumClient.prototype._setInfoDialog = function (time) {
         if (Cesium.defined(this._selectedEntity)) {
-            var lifeExpectancy = this._selectedEntity.lifeExpectancy.getValue(time);
-            var income = this._selectedEntity.income.getValue(time);
-            var population = this._selectedEntity.population.getValue(time);
-            $("#info table").remove();
-            $("#info").append("<table> \
-            <tr><td>Life Expectancy:</td><td>" + parseFloat(lifeExpectancy).toFixed(1) + "</td></tr>\
-            <tr><td>Income:</td><td>" + parseFloat(income).toFixed(1) + "</td></tr>\
-            <tr><td>Population:</td><td>" + parseFloat(population).toFixed(1) + "</td></tr>\
-            </table>\
-            ");
-            $("#info table").css("font-size", "10px");
-            $("#info").dialog({
-                title: this._selectedEntity.id,
-                width: 200,
-                height: 150,
-                modal: false,
-                position: {my: "right center", at: "right center", of: "canvas"},
-                show: "slow",
-                beforeClose: function (event, ui) {
-                    $("#info").data("dataSource").selectedEntity = undefined;
-                }
-            });
-            $("#info").data("dataSource", this);
+
         }
     };
 
@@ -306,17 +190,7 @@
             infoBox: false
         });
 
-    var stamenTonerImagery = viewer.baseLayerPicker.viewModel.imageryProviderViewModels[8];
-    viewer.baseLayerPicker.viewModel.selectedImagery = stamenTonerImagery;
 
-    // setup clockview model
-    viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP;
-    viewer.clock.startTime = Cesium.JulianDate.fromIso8601("1800-01-02");
-    viewer.clock.currentTime = Cesium.JulianDate.fromIso8601("1800-01-02");
-    viewer.clock.stopTime = Cesium.JulianDate.fromIso8601("2009-01-02");
-    viewer.clock.clockStep = Cesium.ClockStep.SYSTEM_CLOCK_MULTIPLIER;
-    viewer.clock.multiplier = yearPerSec * 5;
-    viewer.animation.viewModel.setShuttleRingTicks([yearPerSec, yearPerSec * 5, yearPerSec * 10, yearPerSec * 50]);
 
     viewer.animation.viewModel.dateFormatter = function (date, viewModel) {
         Cesium.JulianDate.toGregorianDate(date, gregorianDate);

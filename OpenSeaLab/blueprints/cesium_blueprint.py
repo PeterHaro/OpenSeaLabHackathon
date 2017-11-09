@@ -9,9 +9,18 @@ cesium_page = Blueprint('cesium_page', __name__,
 
 print(templates_directory)
 
+
 @cesium_page.route('/')
 def show():
     try:
         return render_template('cesium_viewer.html')
+    except TemplateNotFound:
+        abort(404)
+
+
+@cesium_page.route("/app")
+def fullscreen_app():
+    try:
+        return render_template('fullscreen_cesium.html')
     except TemplateNotFound:
         abort(404)
