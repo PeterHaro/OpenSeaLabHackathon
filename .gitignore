@@ -162,3 +162,6 @@ venv.bak/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Sensitive data
+AllYtr.csv
