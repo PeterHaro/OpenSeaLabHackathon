@@ -165,3 +165,6 @@ yarn-error.log*
 
 # Sensitive data
 AllYtr.csv
+esushi.csv
+bigesushimodel.h5
+bigesushimodel.json
