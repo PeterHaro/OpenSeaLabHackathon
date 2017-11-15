@@ -56,7 +56,7 @@ common = Common(app)
 # -----------------
 # Machine learning
 # -----------------
-fish_prediction_network = loadmodel("static/data/bigesushimodel.h5")
+fish_prediction_network = loadmodel(static_directory + "/data/bigesushimodel")
 
 # -----------
 # Middlewares
