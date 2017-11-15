@@ -6,7 +6,6 @@ import os
 import random
 import time
 import uuid
-
 from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for
 from six.moves import range as xrange
 from werkzeug.datastructures import MultiDict
@@ -17,6 +16,7 @@ from werkzeug.wrappers import BaseResponse
 from . import filters
 from .blueprints.cesium_blueprint import cesium_page
 from .blueprints.h2020_blueprint import horizon_blueprint
+from .prediction_module.create_and_test_neural_network_acc import loadmodel
 from .flask_common import Common
 from .utility import CaseInsensitiveDict
 from .utility import get_headers, status_code, get_dict, get_request_range, check_basic_auth, check_digest_auth, \
@@ -51,9 +51,12 @@ static_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sta
 print(template_directory)
 app = Flask(__name__, template_folder=template_directory, static_folder=static_directory)
 app.debug = bool(os.environ.get('DEBUG'))
-
 common = Common(app)
 
+# -----------------
+# Machine learning
+# -----------------
+fish_prediction_network = loadmodel("static/data/bigesushimodel.h5")
 
 # -----------
 # Middlewares
@@ -76,6 +79,7 @@ def set_cors_headers(response):
 @app.context_processor
 def inject_debug():
     return dict(debug=app.debug)
+
 
 # ====================
 # Routes
@@ -763,6 +767,14 @@ def image_svg():
     data = resource('images/Initial_starcraft.svg')
     return Response(data, headers={'Content-Type': 'image/svg+xml'})
 
+@app.route("/get_prediction")
+def get_prediction():
+    lat = request.args.get("lat")
+    lon = request.args.get("lon")
+    input_data = ([lat, lon, ]) # TODO: ADD DATA LINE MOST LIKELY CORRESPONDING
+    # Transpose data
+    transposed_input = input_data.reshape((1, input_data.shape[0]))
+    return fish_prediction_network.predict(transposed_input)
 
 def resource(filename):
     path = os.path.join(
@@ -784,7 +796,6 @@ def xml():
 app.register_blueprint(cesium_page, url_prefix="/cesium")
 if H2020_DEBUG:
     app.register_blueprint(horizon_blueprint, url_prefix="/h2020")
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
