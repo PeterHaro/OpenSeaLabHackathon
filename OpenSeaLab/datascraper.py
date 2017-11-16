@@ -26,18 +26,19 @@ class EmodnetPhysicsData:
 
     def storeEmodnetTempsToCouch(self, feature_list):
         """ Fetch and store features from list in couch db """
+        fc=0
         for feature in feature_list:
             if 'id' in feature:
                 f_id = feature['id']
-                print(f_id)
                 if len(f_id) > 0:
-                    # Todo: Handle doc updates/existing docs
-                    #old_doc = self.emodnet_temp_db.get[f_id]
-                    #if len[old_doc['f_id']] > 0:
-                    #    self.emodnet_temp_db.save({**old_doc, **sdoc}) # Save the updated doc
-                    #else:
-                    self.emodnet_physics_db[f_id] = feature # use feature id as couch doc id
-        return
+                    # Handle doc updates/existing docs
+                    old_feature = self.emodnet_physics_db.get(f_id)
+                    if old_feature is not None:
+                        self.emodnet_physics_db.save({**old_feature, **feature}) # Save the updated doc
+                    else:
+                        self.emodnet_physics_db[f_id] = feature # use feature id as couch doc id
+                    fc+=1
+        return fc
 
     def EmodnetGetPhysicsFeature(self, query_params, store_data=False):
         # Example emodnet physics get requests:
@@ -56,12 +57,22 @@ class EmodnetPhysicsData:
         print('Get request to ' + uri + ': ' + json.dumps(emodnet_query)) # debug
         r = requests.get(uri, emodnet_query)
         #r = requests.post(uri, data=json.dumps(emodnet_query), headers = {'content-type' : 'application/json'})
-        temp_response = r.json()
-        features = temp_response['features'] # get feature list, skip other fields
+        response = r.json()
+        features = response['features'] # get feature list, skip other fields
         if store_data:
-            self.storeEmodnetTempsToCouch(features)
-        return temp_response
-
+            fc = self.storeEmodnetTempsToCouch(features)
+            # store some meta information about the features
+            meta = {**response}
+            meta['features'] = fc
+            tmp = features[0]['id']
+            meta_id = tmp.split('.')[0] + '.meta'
+            old_meta = self.emodnet_physics_db.get(meta_id)
+            if old_meta is not None:
+                self.emodnet_physics_db.save({**old_meta, **meta})  # Save the updated doc
+            else:
+                self.emodnet_physics_db[meta_id] = meta  # use feature id as couch doc id
+            print(meta)
+        return response
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -74,9 +85,15 @@ if __name__ == '__main__':
     parser.add_argument("--bbox",  default="-31.1000,51.7911,142.5000,89.5000")
     parser.add_argument("--maxfeat", default="10")
     args = parser.parse_args()
-    queryParams = dict(typeName=args.type, maxFeatures=args.maxfeat)
+    #queryParams = dict(typeName=args.type, maxFeatures=args.maxfeat)
 
+    # create fetcher for last xd types
+    pre_t = 'route_'
+    types_var = ['gl', 'fb', 'db', 'ar']
+    post_t = '_temp_7d'
     data_scraper = DataScraper()
     emodnet_temp = EmodnetPhysicsData(data_scraper.couchserver)
-    features = emodnet_temp.EmodnetGetPhysicsFeature(queryParams, True)
-    print(json.dumps(features, indent=2))
+    for type in types_var:
+        queryParams = dict(typeName=pre_t+type+post_t, maxFeatures=args.maxfeat)
+        features = emodnet_temp.EmodnetGetPhysicsFeature(queryParams, True)
+        #print(json.dumps(features)) # debug
