@@ -140,7 +140,7 @@
         west: -5.97033,
         east: 52.333,
         south: 17.33333,
-        north: 79.84
+        north: 75
     };
 
     // init heatmap
