@@ -1,4 +1,5 @@
 import os
+import json
 
 from flask import Blueprint, render_template, abort
 from jinja2 import TemplateNotFound
@@ -24,3 +25,10 @@ def fullscreen_app():
         return render_template('fullscreen_cesium.html')
     except TemplateNotFound:
         abort(404)
+
+
+@cesium_page.route("/sample_wind")
+def get_sample_wind():
+    with open("./OpenSeaLab/static/data/sample-wind.json") as data:
+        data = json.load(data)
+        return json.dumps(data)

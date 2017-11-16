@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 import argparse
 import base64
+import csv
 import json
 import os
 import random
 import time
 import uuid
 
+import numpy as np
 from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for
 from six.moves import range as xrange
 from werkzeug.datastructures import MultiDict
@@ -18,6 +20,7 @@ from . import filters
 from .blueprints.cesium_blueprint import cesium_page
 from .blueprints.h2020_blueprint import horizon_blueprint
 from .flask_common import Common
+from .prediction_module.create_and_test_neural_network_acc import loadmodel, reverse_normalization
 from .utility import CaseInsensitiveDict
 from .utility import get_headers, status_code, get_dict, get_request_range, check_basic_auth, check_digest_auth, \
     secure_cookie, ROBOT_TXT, ANGRY_ASCII, parse_multi_value_header, next_stale_after_value, \
@@ -51,8 +54,12 @@ static_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sta
 print(template_directory)
 app = Flask(__name__, template_folder=template_directory, static_folder=static_directory)
 app.debug = bool(os.environ.get('DEBUG'))
-
 common = Common(app)
+
+# -----------------
+# Machine learning
+# -----------------
+fish_prediction_network = loadmodel(static_directory + "/data/esushi_3000e_3c")
 
 
 # -----------
@@ -76,6 +83,7 @@ def set_cors_headers(response):
 @app.context_processor
 def inject_debug():
     return dict(debug=app.debug)
+
 
 # ====================
 # Routes
@@ -764,6 +772,55 @@ def image_svg():
     return Response(data, headers={'Content-Type': 'image/svg+xml'})
 
 
+@app.route("/get_prediction")
+def get_prediction():
+    # Reverse normalization
+    lat = request.args.get("lat")
+    lon = request.args.get("lon")
+    lat, lon = reverse_normalization(float(lat), float(lon))
+    print(lat)
+    print(lon)
+    # Create input data (ex: line1)
+    input_data = np.array(
+        [lat, lon, 0.7868295994568903, 0.6890547263681592, 0.6044883684861628, 0.6116116116116115, 0.2662111560451819,
+         0.5259866592551419, 0.3871877001921845, 0.2363080344731721, 0.23637374860956617, 0.486524034454015,
+         0.6032614959087241, 0.5973272527853144, 0.1634822389666308, 0.13467217956290609, 0.10155384017758044,
+         0.34081833739563344, 0.009648675861286113, 0.4580229457482041, 0.4361750713606089, 0.5709906646231016,
+         0.044713748432929384, 0.2332405994794939, 0.053358660500566604, 0.613556372909965, 0.508431164647295,
+         0.6723720501991554, 0.5322218264601718, 0.403663357796843, 0.231705743933087, 0.002559559854054275,
+         0.0064930897360437, 0.00021039815618564145, 0.0007570391264074843, 0.8217404359840871, 0.7557287987922342,
+         0.05224783375823803, 0.09063692930538017, 0.08389730866190376, 0.1999882958408379, 0.11935393234962893,
+         0.11038964122504162, 0.1132670892788276, 0.11765521179821796, 0.0027055763143223215, 0.0033053362234686107,
+         0.24934846874946442, 0.002687329862233128, 0.0762681337393981])
+
+    print(input_data)
+
+    # Transpose data
+    transposed_input = input_data.reshape((1, input_data.shape[0]))
+    return fish_prediction_network.predict(transposed_input)
+
+
+@app.route("/load_prediction_heatmap")
+def get_predicition_heatmap_data():
+    retval = []
+    with open("./OpenSeaLab/static/data/esushi.csv", newline="", encoding="utf-8") as data:
+        reader = csv.reader(data, delimiter=",")
+        for dataline in reader:
+            lat, lon = reverse_normalization(float(dataline[0]), float(dataline[1]))
+            input_data = np.array(dataline)
+            transposed_input = input_data.reshape((1, input_data.shape[0]))
+            prediction = fish_prediction_network.predict(transposed_input)
+            heamap_container = {
+                "lat" : lat,
+                "lon" : lon,
+                "p_low" : float(prediction[0][0]),
+                "p_mid" : float(prediction[0][1]),
+                "p_high" : float(prediction[0][2])
+            }
+            retval.append(heamap_container)
+    return json.dumps(retval)
+
+
 def resource(filename):
     path = os.path.join(
         template_directory,
@@ -784,7 +841,6 @@ def xml():
 app.register_blueprint(cesium_page, url_prefix="/cesium")
 if H2020_DEBUG:
     app.register_blueprint(horizon_blueprint, url_prefix="/h2020")
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

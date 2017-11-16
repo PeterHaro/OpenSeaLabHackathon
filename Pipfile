@@ -22,6 +22,15 @@ whitenoise = "*"
 decorator = "*"
 brotli = "*"
 flask-assets = "*"
+numpy = "*"
+pandas = "*"
+keras = "*"
+sklearn = "*"
+argparse = "*"
+jupyter = "*"
+tensorflow = "*"
+matplotlib = "*"
+"h5py" = "*"
 
 
 [requires]
