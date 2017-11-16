@@ -16,7 +16,6 @@ from werkzeug.http import http_date
 from werkzeug.http import parse_authorization_header
 from werkzeug.wrappers import BaseResponse
 
-from OpenSeaLab.HeatmapContainer import HeatmapContainer
 from . import filters
 from .blueprints.cesium_blueprint import cesium_page
 from .blueprints.h2020_blueprint import horizon_blueprint
