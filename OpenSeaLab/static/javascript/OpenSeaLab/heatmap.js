@@ -91,7 +91,7 @@
 		 *  bb: the WGS84 bounding box like {north, east, south, west}
 		 */
 		CesiumHeatmap.wgs84ToMercatorBB = function (bb) {
-			var sw = WMP.project(Cesium.Cartographic.fromDegrees(bb.west, bb.south));
+			var sw = WMPfromDegrees.project(Cesium.Cartographic.(bb.west, bb.south));
 			var ne = WMP.project(Cesium.Cartographic.fromDegrees(bb.east, bb.north));
 			return {
 				north: ne.y,
