@@ -196,13 +196,10 @@ map.on('singleclick', function (evt) {
         }).then(function (response) {
             var result = parser.readFeatures(response);
             console.log(result);
-            content.innerHTML = "Name: " + result[0].P.name + " Closed for: " + result[0].P.type_name;
+            content.innerHTML = "<h4>Closed area</h4>"+  "<p>Name: " + result[0].P.name + "</p><p> Closed for: " + result[0].P.type_name + "</p>" + "<p>" + result[0].P.description + "</p>";
             overlay.setPosition(coordinate);
         });
-
     }
-    //var pixel = evt.pixel;
-    //displayFeatureInfo(pixel);
 });
 
 /*
