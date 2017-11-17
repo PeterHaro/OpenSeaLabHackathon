@@ -824,6 +824,30 @@ def get_predicition_geojson_heatmap_data():
     # return json.dumps(retval)
 
 
+@app.route("/load_sinmod_geojson_temp")
+def get_sinmod_geojson_temp_data():
+    retval = []
+    with open("./OpenSeaLab/static/sinmodTemp.txt") as data:
+        for line in data:
+            feature = json.loads(line.strip())
+            retval.append(feature)
+    return json.dumps({
+        'type': 'FeatureCollection',
+        'features': retval,
+    })
+
+@app.route("/load_emodnet_geojson_temp")
+def get_emodnet_geojson_temp_data():
+    retval = []
+    with open("./OpenSeaLab/static/tempdata-2017-11-09_parsed.txt") as data:
+        for line in data:
+            feature = json.loads(line.strip())
+            retval.append(feature)
+    return json.dumps({
+        'type': 'FeatureCollection',
+        'features': retval,
+    })
+
 def resource(filename):
     path = os.path.join(
         template_directory,

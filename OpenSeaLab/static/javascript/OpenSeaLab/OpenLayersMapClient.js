@@ -28,6 +28,40 @@ heatmap_layer.getSource().on('addfeature', function (event) {
     event.feature.set("weigth", probablyOfMoreThenRegularCatch);
 });
 
+var sinmod_temperature_layer = new ol.layer.Heatmap({
+    name: "Sinmod temperature",
+    source: new ol.source.Vector({
+        url: '/load_sinmod_geojson_temp',
+        format: new ol.format.GeoJSON()
+    }),
+    blur: 15,
+    radius: 2
+});
+sinmod_temperature_layer.set("name", "sinmod_temp");
+
+sinmod_temperature_layer.getSource().on('addfeature', function (event) {
+    var sinmodTemperature = event.feature.get("Temperature");
+    event.feature.set("weigth", sinmodTemperature);
+});
+sinmod_temperature_layer.setVisible(false);
+
+var emodnet_temperature_layer = new ol.layer.Heatmap({
+    name: "Sinmod temperature",
+    source: new ol.source.Vector({
+        url: '/load_sinmod_geojson_temp',
+        format: new ol.format.GeoJSON()
+    }),
+    blur: 15,
+    radius: 2
+});
+emodnet_temperature_layer.set("name", "emodnet_temp");
+
+emodnet_temperature_layer.getSource().on('addfeature', function (event) {
+    var temperature = event.feature.get("temp");
+    event.feature.set("weigth", temperature);
+});
+emodnet_temperature_layer.setVisible(false);
+
 
 //LAYER SWITCHER
 window.app = {};
@@ -71,7 +105,7 @@ map = new ol.Map({
     }).extend([
         new app.LayerSwitcherControl()
     ]),
-    layers: [openSeaMapLayer, heatmap_layer],
+    layers: [openSeaMapLayer, heatmap_layer, sinmod_temperature_layer, emodnet_temperature_layer],
     target: 'map',
     view: new ol.View({
         center: [0, 0],
@@ -120,7 +154,12 @@ map.getLayers().forEach(function (layer) {
     var layerswitching_menu = document.getElementById("slide-out");
     if (layer.get("name") !== undefined) {
         var li = document.createElement("li");
-        li.innerHTML = "<input type='checkbox' onclick =setLayerVisibility('" + layer.get("name") + "') id='" + layer.get("name") + "'checked='checked'/>" + "<label for='" + layer.get("name") + "'>" + layer.get("name") + "</label>";
+        if(layer.get("name") == 'sinmod_temp' || layer.get("name") == 'emodnet_temp') {
+                    li.innerHTML = "<input type='checkbox' onclick =setLayerVisibility('" + layer.get("name") + "') id='" + layer.get("name") + "'/>" + "<label for='" + layer.get("name") + "'>" + layer.get("name") + "</label>";
+        } else {
+                    li.innerHTML = "<input type='checkbox' onclick =setLayerVisibility('" + layer.get("name") + "') id='" + layer.get("name") + "'checked='checked'/>" + "<label for='" + layer.get("name") + "'>" + layer.get("name") + "</label>";
+
+        }
             ;
         layerswitching_menu.appendChild(li);
     }
