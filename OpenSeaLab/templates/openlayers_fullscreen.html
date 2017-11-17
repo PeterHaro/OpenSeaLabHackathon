@@ -18,7 +18,9 @@
     <meta property="og:image" content="https://peterharo.github.io/preview"/>
 
     <link rel="shortcut icon" href="/favicon.ico"/>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" type="text/css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css"
+          type="text/css">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}"/>
     <link rel="alternate" hreflang="x-default" href="https://peterharo.github.io/"/>
     <link rel="alternate" hreflang="no" href="https://peterharo.github.io//no"/>
@@ -26,6 +28,16 @@
     <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
     <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
     <script src="https://openlayers.org/en/v4.5.0/build/ol.js"></script>
+    <style>
+        .rotate-north {
+            top: 65px;
+            left: .5em;
+        }
+
+        .ol-touch .rotate-north {
+            top: 80px;
+        }
+    </style>
 
 </head>
 <body data-lang="en">
@@ -34,13 +46,36 @@
     your browser</a> to improve your experience.</p>
 <![endif]-->
 
-<div id="map" class="map" tabindex="0"></div>
+<header>
+    <!-- Announcements -->
+    <div class="fixed-announcement">
+        <div class="announcement">
+            <div class="container">OpenSeaLab is in pre alpha version! Please see this<a
+                    href='https://github.com/peterharo/OpenSeaLabHackathon'> GitHub repository</a> for more information.
+            </div>
+        </div>
+    </div>
+</header>
+
+<ul id="slide-out" class="side-nav">
+    <li><a href=""></a></li>
+</ul>
+
+<div id="map" class="map" tabindex="0">
+    <!--<canvas id="windyMap" class="fill"></canvas>-->
+    <!--<div id="olMap" class="fill"></div>-->
+</div>
 <!-- JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"
         integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
-<!--<script src="{{ url_for('static', filename='javascript/OpenSeaLab/OpenLayers4LayerSwitcher.js') }}"/>-->
-<script src="{{ url_for('static', filename='javascript/OpenSeaLab/openlayers_cesium_injector.js') }}"></script>
-<script src="{{ url_for('static', filename='javascript/OpenSeaLab/olcesium.js') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+<script src="{{ url_for('static', filename='javascript/OpenSeaLab/windy.js') }}"></script>
 <script src="{{ url_for('static', filename='javascript/OpenSeaLab/OpenLayersMapClient.js') }}"></script>
+<script>
+    // Initialize collapse button
+    $(".button-collapse").sideNav();
+    // Initialize collapsible (uncomment the line below if you use the dropdown variation)
+    //$('.collapsible').collapsible();
+</script>
 </body>
 </html>
