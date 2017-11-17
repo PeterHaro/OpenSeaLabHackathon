@@ -33,6 +33,7 @@ matplotlib = "*"
 "h5py" = "*"
 requests = "*"
 couchdb = "*"
+pyproj = "*"
 
 
 [requires]
