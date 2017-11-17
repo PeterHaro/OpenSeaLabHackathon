@@ -13,6 +13,7 @@ var openSeaMapLayer = new ol.layer.Tile({
 });
 
 var heatmap_layer = new ol.layer.Heatmap({
+    name: "predicted_fish",
     source: new ol.source.Vector({
         url: '/load_prediction_geojson_heatmap',
         format: new ol.format.GeoJSON()
@@ -20,6 +21,7 @@ var heatmap_layer = new ol.layer.Heatmap({
     blur: 15,
     radius: 2
 });
+heatmap_layer.set("name", "predicted_fish");
 
 heatmap_layer.getSource().on('addfeature', function (event) {
     var probablyOfMoreThenRegularCatch = event.feature.get("p_high");
@@ -50,6 +52,16 @@ app.LayerSwitcherControl = function (opt_options) {
     });
 };
 ol.inherits(app.LayerSwitcherControl, ol.control.Control);
+
+//SET VISIBILITY
+var setLayerVisibility = function (name) {
+    map.getLayers().forEach(function (layer) {
+        if (layer.get("name") === name) {
+            layer.setVisible(!layer.getVisible());
+        }
+    });
+};
+
 
 map = new ol.Map({
     controls: ol.control.defaults({
@@ -98,9 +110,28 @@ var untiled = new ol.layer.Image({
         }
     })
 });
+untiled.set("name", "ice_chart");
 map.addLayer(untiled);
 map.updateSize();
 
+//Add layers to layerswitcher
+map.getLayers().forEach(function (layer) {
+    console.log(layer.get("name"));
+    var layerswitching_menu = document.getElementById("slide-out");
+    if (layer.get("name") !== undefined) {
+        var li = document.createElement("li");
+        li.innerHTML = "<input type='checkbox' onclick =setLayerVisibility('" + layer.get("name") + "') id='" + layer.get("name") + "'checked='checked'/>" + "<label for='" + layer.get("name") + "'>" + layer.get("name") + "</label>";
+            ;
+        layerswitching_menu.appendChild(li);
+    }
+});
+
+/*
+    <li>
+        <input type="checkbox" id="test5"/>
+        <label for="test5">Red</label>
+    </li>
+ */
 
 /*
 //COOL SHIT BRUH!
