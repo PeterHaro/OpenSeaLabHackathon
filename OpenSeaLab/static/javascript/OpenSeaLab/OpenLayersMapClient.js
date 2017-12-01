@@ -4,6 +4,10 @@ var map;
 var container = document.getElementById('popup');
 var content = document.getElementById('popup-content');
 var closer = document.getElementById('popup-closer');
+var dateContainer = document.getElementById('date-input-container-context');
+var dateCloser = document.getElementById('popup-closer-context');
+//var content = document.getElementById('popup-content');
+var currentDate = "20130301";
 
 //__END_POPUPS
 var raster = new ol.layer.Tile({
@@ -18,32 +22,107 @@ var openSeaMapLayer = new ol.layer.Tile({
     })
 });
 
-var heatmap_layer = new ol.layer.Heatmap({
-    name: "predicted_fish",
-    source: new ol.source.Vector({
-        url: '/load_prediction_geojson_heatmap',
-        format: new ol.format.GeoJSON()
+var catchFeatureStyle =  function(feature, resolution) {
+    var quantity = feature.P.total_quantity;
+
+    return new ol.style.Style({
+        image: new ol.style.Circle({
+            radius: 7,
+            stroke: new ol.style.Stroke({
+                color: '#000000',
+                width: 1
+            }),
+            fill: new ol.style.Fill({
+                color: quantity < 2000 ? "#00ff00" : quantity < 4000 ? "#ffff00" : quantity < 6000 ? "#ffbf00" : quantity < 8000 ? "#ff8000" : "#ff0000"
+            })
+        })
+    });
+}
+
+
+
+var highlightStyle = new ol.style.Style({
+    stroke: new ol.style.Stroke({
+        color: '#f00',
+        width: 1
     }),
-    blur: 15,
-    radius: 2
+        fill: new ol.style.Fill({
+        color: 'rgba(255,0,0,0.1)'
+    })
 });
-heatmap_layer.set("name", "predicted_fish");
+
+var catchLayer = new ol.layer.Vector({
+    name: "catch_data",
+    source: new ol.source.Vector({
+      url: '/load_catch_data?date=20131101',
+      format: new ol.format.GeoJSON()
+    })
+    ,style: catchFeatureStyle
+});
+// catchLayer.setStyle(catchFeatureStyle);
+
+var heatmapSource = new ol.source.Vector({
+        url: '/load_prediction_geojson_heatmap?date=20131101',
+        format: new ol.format.GeoJSON()
+    });
+
+var heatmap_layer = new ol.layer.Heatmap({
+    name: "predicted_fish_high",
+    source: heatmapSource,
+    blur: 15,
+    radius: 2,
+    weight: function(feature){
+        return feature.get("p_high")
+    }
+});
 
 heatmap_layer.getSource().on('addfeature', function (event) {
     var probablyOfMoreThenRegularCatch = event.feature.get("p_high");
     event.feature.set("weigth", probablyOfMoreThenRegularCatch);
 });
+// heatmap_layer.setVisible(false);
+
+var prediction_low_heatmap_layer = new ol.layer.Heatmap({
+    name: "predicted_fish_low",
+    source: heatmapSource,
+    blur: 15,
+    radius: 2,
+    weight: function(feature){
+        return feature.get("p_low")
+    }
+});
+prediction_low_heatmap_layer.setVisible(false);
+
+prediction_low_heatmap_layer.getSource().on('addfeature', function (event) {
+    var probablyOfLessThanRegularCatch = event.feature.get("p_low");
+    event.feature.set("weigth", probablyOfLessThanRegularCatch);
+});
+
+var prediction_mid_heatmap_layer = new ol.layer.Heatmap({
+    name: "predicted_fish_mid",
+    source: heatmapSource,
+    blur: 15,
+    radius: 2,
+    weight: function(feature){
+        return feature.get("p_mid")
+    }
+});
+prediction_mid_heatmap_layer.setVisible(false);
+
+prediction_mid_heatmap_layer.getSource().on('addfeature', function (event) {
+    var probablyOfRegularCatch = event.feature.get("p_mid");
+    event.feature.set("weigth", probablyOfRegularCatch);
+});
 
 var sinmod_temperature_layer = new ol.layer.Heatmap({
-    name: "Sinmod temperature",
+    name: "sinmod_temp",
     source: new ol.source.Vector({
-        url: '/load_sinmod_geojson_temp',
+        //url: '/load_sinmod_geojson_temp',
         format: new ol.format.GeoJSON()
     }),
     blur: 15,
     radius: 2
 });
-sinmod_temperature_layer.set("name", "sinmod_temp");
 
 sinmod_temperature_layer.getSource().on('addfeature', function (event) {
     var sinmodTemperature = event.feature.get("Temperature");
@@ -52,7 +131,7 @@ sinmod_temperature_layer.getSource().on('addfeature', function (event) {
 sinmod_temperature_layer.setVisible(false);
 
 var emodnet_temperature_layer = new ol.layer.Heatmap({
-    name: "Sinmod temperature",
+    name: "emodnet_temp",
     source: new ol.source.Vector({
         url: '/load_sinmod_geojson_temp',
         format: new ol.format.GeoJSON()
@@ -60,7 +139,6 @@ var emodnet_temperature_layer = new ol.layer.Heatmap({
     blur: 15,
     radius: 2
 });
-emodnet_temperature_layer.set("name", "emodnet_temp");
 
 emodnet_temperature_layer.getSource().on('addfeature', function (event) {
     var temperature = event.feature.get("temp");
@@ -111,7 +189,7 @@ map = new ol.Map({
     }).extend([
         new app.LayerSwitcherControl()
     ]),
-    layers: [openSeaMapLayer, heatmap_layer, sinmod_temperature_layer, emodnet_temperature_layer],
+    layers: [openSeaMapLayer, heatmap_layer, prediction_mid_heatmap_layer, prediction_low_heatmap_layer, sinmod_temperature_layer, emodnet_temperature_layer],
     target: 'map',
     view: new ol.View({
         center: [0, 0],
@@ -169,9 +247,10 @@ var closed_zones = new ol.layer.Tile({
 });
 
 untiled.set("name", "ice_chart");
-closed_zones.set("name", "closed messages");
+closed_zones.set("name", "closed_messages");
 map.addLayer(untiled);
 map.addLayer(closed_zones);
+map.addLayer(catchLayer);
 map.updateSize();
 
 //Add layers to layerswitcher
@@ -180,7 +259,7 @@ map.getLayers().forEach(function (layer) {
     var layerswitching_menu = document.getElementById("slide-out");
     if (layer.get("name") !== undefined) {
         var li = document.createElement("li");
-        if(layer.get("name") == 'sinmod_temp' || layer.get("name") == 'emodnet_temp') {
+        if(layer.get("name") == 'sinmod_temp' || layer.get("name") == 'emodnet_temp'  || layer.get("name") == 'predicted_fish_low' || layer.get("name") == 'predicted_fish_mid') {
                     li.innerHTML = "<input type='checkbox' onclick =setLayerVisibility('" + layer.get("name") + "') id='" + layer.get("name") + "'/>" + "<label for='" + layer.get("name") + "'>" + layer.get("name") + "</label>";
         } else {
                     li.innerHTML = "<input type='checkbox' onclick =setLayerVisibility('" + layer.get("name") + "') id='" + layer.get("name") + "'checked='checked'/>" + "<label for='" + layer.get("name") + "'>" + layer.get("name") + "</label>";
@@ -204,16 +283,32 @@ var displayFeatureInfo = function (pixel) {
 //ANCHOR FOR POPUPS TO GET A FIX POSS IN MAp
 var overlay = new ol.Overlay(/** @type {olx.OverlayOptions} */ ({
     element: container,
-    autoPan: true,
-    autoPanAnimation: {
-        duration: 250
-    }
+//    autoPan: true,
+//    autoPanAnimation: {
+//        duration: 250
+//    }
+}));
+
+var dateOverlay = new ol.Overlay(/** @type {olx.OverlayOptions} */ ({
+    element: dateContainer,
+//    autoPan: true,
+//    autoPanAnimation: {
+//        duration: 250
+//    }
 }));
 
 map.addOverlay(overlay);
+map.addOverlay(dateOverlay);
+
 closer.onclick = function () {
     overlay.setPosition(undefined);
     closer.blur();
+    return false;
+};
+
+dateCloser.onclick = function () {
+    dateOverlay.setPosition(undefined);
+    dateOverlay.blur();
     return false;
 };
 
@@ -240,6 +335,149 @@ map.on('singleclick', function (evt) {
         });
     }
 });
+
+// the style function for the feature overlay returns
+// a text style for point features and the highlight
+// style for other features (polygons in this case)
+function styleFunction(feature, resolution) {
+    var style;
+    var geom = feature.getGeometry();
+    if (geom.getType() == 'Point') {
+      var text = feature.get('text');
+      baseTextStyle.text = text;
+      // this is inefficient as it could create new style objects for the
+      // same text.
+      // A good exercise to see if you understand would be to add caching
+      // of this text style
+      var isoCode = feature.get('isoCode').toLowerCase();
+      style = new ol.style.Style({
+        text: new ol.style.Text(baseTextStyle),
+        image: new ol.style.Icon({
+          src: '../assets/img/flags/'+isoCode+'.png'
+        }),
+        zIndex: 2
+      });
+    } else {
+      style = highlightStyle;
+    }
+
+    return [style];
+}
+
+var featureOverlay = new ol.layer.Vector({
+        source: new ol.source.Vector(),
+        map: map,
+        style: function(feature) {
+          return highlightStyle;
+        }
+      });
+
+  var highlight;
+  var displayFeatureInfo = function(pixel) {
+
+    var feature = map.forEachFeatureAtPixel(pixel, function(feature) {
+      return feature;
+    });
+
+    var info = document.getElementById('info');
+    if (feature) {
+
+        speciesDistributionString = "";
+
+        if(feature.P["species_and_catch"] != null) {
+            feature.P.species_and_catch.forEach(function(entry) {
+                speciesDistributionString += "<p>" + entry[0] + ": " + entry[1] + "kg</p>";
+            });
+        } else {
+            return;
+        }
+
+        info.innerHTML = "<p>Total fangst: " + feature.P.total_quantity + " kg</p>" +
+            "<p>Fartøy: " + (feature.P.vesselName == "Nordørn" ? "Tråler 22" : (feature.P.vesselName == "Nordstar" ? "Tråler 23" : feature.P.vesselName)) + "</p>" +
+            "Fiskeslag: " + speciesDistributionString;
+
+        var geometry = feature.getGeometry();
+        var coord = geometry.getCoordinates();
+        overlay.setPosition(coord);
+
+        var content = document.getElementById('popup-content');
+        content.innerHTML = info.innerHTML;
+    } else {
+      info.innerHTML = '&nbsp;';
+    }
+
+    if (feature !== highlight) {
+      if (highlight) {
+        featureOverlay.getSource().removeFeature(highlight);
+      }
+      if (feature) {
+        featureOverlay.getSource().addFeature(feature);
+      }
+      highlight = feature;
+    }
+
+  };
+
+  map.on('pointermove', function(evt) {
+    if (evt.dragging) {
+      return;
+    }
+    var pixel = map.getEventPixel(evt.originalEvent);
+    displayFeatureInfo(pixel);
+  });
+
+  map.on('click', function(evt) {
+    displayFeatureInfo(evt.pixel);
+  });
+
+var contextmenu = new ContextMenu({
+  width: 180,
+  items: [
+      {
+        text: 'Ny dato',
+        callback: setDateFieldPosition
+      }
+  ]
+});
+map.addControl(contextmenu);
+
+function setDateFieldPosition() {
+    dateOverlay.setPosition(map.getView().getCenter());
+}
+
+function getDateData(date) {
+
+    var submittedDate = document.getElementById("date-input-field-context").value;
+
+    dateOverlay.setPosition(undefined);
+    dateCloser.blur();
+
+    var catchLayer = map.getLayers().a[8];
+
+    if(date != null) {
+        submittedDate = date;
+    }
+
+    if(submittedDate == currentDate) {
+        return;
+    }
+
+    var catchSource = new ol.source.Vector({
+      url: '/load_catch_data?date=' + submittedDate,
+      format: new ol.format.GeoJSON()
+    });
+
+    catchLayer.setSource(catchSource);
+
+    var predictionSource = new ol.source.Vector({
+      url: '/load_prediction_geojson_heatmap?date=' + submittedDate,
+      format: new ol.format.GeoJSON()
+    });
+    heatmap_layer.setSource(predictionSource);
+    prediction_low_heatmap_layer.setSource(predictionSource);
+    prediction_mid_heatmap_layer.setSource(predictionSource);
+    // catchLayer.changed();
+}
 
 /*
     <li>

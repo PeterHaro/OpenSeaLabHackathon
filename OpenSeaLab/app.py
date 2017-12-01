@@ -7,6 +7,7 @@ import os
 import random
 import time
 import uuid
+import pyodbc
 
 import numpy as np
 from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for
@@ -791,38 +792,464 @@ def get_predicition_heatmap_data():
             input_data = np.array(dataline)
             transposed_input = input_data.reshape((1, input_data.shape[0]))
             prediction = fish_prediction_network.predict(transposed_input)
-            heamap_container = {
+            heatmap_container = {
                 "lat": lat,
                 "lon": lon,
                 "p_low": float(prediction[0][0]),
                 "p_mid": float(prediction[0][1]),
                 "p_high": float(prediction[0][2])
             }
-            retval.append(heamap_container)
+            retval.append(heatmap_container)
     return json.dumps(retval)
 
+
+# @app.route("/load_prediction_geojson_heatmap")
+# def get_predicition_geojson_heatmap_data():
+#     retval = []
+#     with open("./OpenSeaLab/static/data/esushi.csv", newline="", encoding="utf-8") as data:
+#         reader = csv.reader(data, delimiter=",")
+#         for dataline in reader:
+#             lat, lon = reverse_normalization(float(dataline[0]), float(dataline[1]))
+#             input_data = np.array(dataline)
+#             # print(input_data)
+#             # print(input_data.shape[0])
+#             transposed_input = input_data.reshape((1, input_data.shape[0]))
+#             # print(transposed_input)
+#             prediction = fish_prediction_network.predict(transposed_input)
+#             feature = geojson_feature(lon, lat)
+#             feature["properties"]["p_low"] = float(prediction[0][0])
+#             feature["properties"]["p_mid"] = float(prediction[0][1])
+#             feature["properties"]["p_high"] = float(prediction[0][2])
+#             print(float(prediction[0][0]))
+#             print(float(prediction[0][1]))
+#             print(str(float(prediction[0][2])) + "\n")
+#             retval.append(feature)
+#     return json.dumps({
+#         'type': 'FeatureCollection',
+#         'features': retval,
+#     })
 
 @app.route("/load_prediction_geojson_heatmap")
 def get_predicition_geojson_heatmap_data():
     retval = []
-    with open("./OpenSeaLab/static/data/esushi.csv", newline="", encoding="utf-8") as data:
-        reader = csv.reader(data, delimiter=",")
-        for dataline in reader:
-            lat, lon = reverse_normalization(float(dataline[0]), float(dataline[1]))
-            input_data = np.array(dataline)
-            transposed_input = input_data.reshape((1, input_data.shape[0]))
-            prediction = fish_prediction_network.predict(transposed_input)
-            feature = geojson_feature(lon, lat)
-            feature["properties"]["p_low"] = float(prediction[0][0])
-            feature["properties"]["p_mid"] = float(prediction[0][1])
-            feature["properties"]["p_high"] = float(prediction[0][2])
-            retval.append(feature)
+    cnxn = pyodbc.connect(r'Driver={SQL Server};Server=.\SQLEXPRESS;Database=unified schema;Trusted_Connection=yes;')
+    cursor = cnxn.cursor()
+    feature = None
+    requestedDate = request.args.get('date')
+    recordCount = 20000
+
+    latMax, latMin = (-5.970333, 52.33)
+    lonMax, lonMin = (17.73333, 79.84)
+    SalinityMax, SalinityMin = (None, None)
+    TemperatureMax, TemperatureMin = (None, None)
+    BottomTemperatureMax, BottomTemperatureMin = (None, None)
+    MoonPhaseMax, MoonPhaseMin = (None, None)
+    meanWaveDirectionSwellMax, meanWaveDirectionSwellMin = (None, None)
+    meanWaveDirectionWindMax, meanWaveDirectionWindMin = (None, None)
+    meanWavePeriodSwellMax, meanWavePeriodSwellMin = (None, None)
+    peakWaveDirectionMax, peakWaveDirectionMin = (None, None)
+    peakWaveDirectionSwellMax, peakWaveDirectionSwellMin = (None, None)
+    peakWaveDirectionWindMax, peakWaveDirectionWindMin = (None, None)
+    peakWavePeriodMax, peakWavePeriodMin = (None, None)
+    peakWavePeriodSwellMax, peakWavePeriodSwellMin = (None, None)
+    peakWavePeriodSwimMax, peakWavePeriodSwimMin = (None, None)
+    significantSwellWaveHeightMax, significantSwellWaveHeightMin = (None, None)
+    significantWaveHeightMax, significantWaveHeightMin = (None, None)
+    significantWavePeriodMax, significantWavePeriodMin = (None, None)
+    significantWindWaveHeightMax, significantWindWaveHeightMin = (None, None)
+    stokesDriftXVelocityMax, stokesDriftXVelocityMin = (None, None)
+    stokesDriftYVelocityMax, stokesDriftYVelocityMin = (None, None)
+    waveDirectionMax, waveDirectionMin = (None, None)
+    windDirectionMax, windDirectionMin = (None, None)
+    windSpeedMax, windSpeedMin = (None, None)
+    distanceToLandMax, distanceToLandMin = (None, None)
+    nitrogenSurfaceMax, nitrogenSurfaceMin = (None, None)
+    nitrogenBottomMax, nitrogenBottomMin = (None, None)
+    phosphateSurfaceMax, phosphateSurfaceMin = (None, None)
+    phosphateBottomMax, phosphateBottomMin = (None, None)
+    silicateSurfaceMax, silicateSurfaceMin = (None, None)
+    silicateBottomMax, silicateBottomMin = (None, None)
+    flagellatesSurfaceMax, flagellatesSurfaceMin = (None, None)
+    flagellatesBottomMax, flagellatesBottomMin = (None, None)
+    diatomsSurfaceMax, diatomsSurfaceMin = (None, None)
+    diatomsBottomMax, diatomsBottomMin = (None, None)
+    oxygenSurfaceMax, oxygenSurfaceMin = (None, None)
+    oxygenBottomMax, oxygenBottomMin = (None, None)
+    microplanctonSurfaceMax, microplanctonSurfaceMin = (None, None)
+    microplanctonBottomMax, microplanctonBottomMin = (None, None)
+    mesozoonplanctonSurfaceMax, mesozoonplanctonSurfaceMin = (None, None)
+    mesozoonplanctonBottomMax, mesozoonplanctonBottomMin = (None, None)
+    detriusSurfaceMax, detriusSurfaceMin = (None, None)
+    detriusBottomMax, detriusBottomMin = (None, None)
+    DEPTSurfaceMax, DEPTSurfaceMin = (None, None)
+    DEPTBottomMax, DEPTBottomMin = (None, None)
+    SISSurfaceMax, SISSurfaceMin = (None, None)
+    SISBottomMax, SISBottomMin = (None, None)
+    depthMax, depthMin = (None, None)
+    primaryProductionBottomMax, primaryProductionBottomMin = (None, None)
+
+    cursor.execute(" SELECT " +
+                   "     MAX([CatchWithBottomTempAndDistanceToLand].[Salinity]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[Temperature]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[BottomTemperature]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[MoonPhase]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[meanWaveDirectionSwell]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[meanWaveDirectionWind]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[meanWavePeriodSwell]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[peakWaveDirection]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[peakWaveDirectionSwell]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[peakWaveDirectionWind]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[peakWavePeriod]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[peakWavePeriodSwell]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[peakWavePeriodSwim]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[significantSwellWaveHeight]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[significantWaveHeight]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[significantWavePeriod]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[significantWindWaveHeight]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[stokesDriftXVelocity]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[stokesDriftYVelocity]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[waveDirection]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[windDirection]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[windSpeed]) " +
+                   "     ,MAX([CatchWithBottomTempAndDistanceToLand].[distanceToLand]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[nitrogenSurface]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[nitrogenBottom]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[phosphateSurface]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[phosphateBottom]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[silicateSurface]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[silicateBottom]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[flagellatesSurface]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[flagellatesBottom]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[diatomsSurface]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[diatomsBottom]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[oxygenSurface]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[oxygenBottom]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[microplanctonSurface]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[microplanctonBottom]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[mesozoonplanctonSurface]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[mesozoonplanctonBottom]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[detriusSurface]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[detriusBottom]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[DEPTSurface]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[DEPTBottom]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[SISSurface]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[SISBottom]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[depth]) " +
+                   "     ,MAX([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].primaryProductionBottom) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[Salinity]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[Temperature]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[BottomTemperature]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[MoonPhase]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[meanWaveDirectionSwell]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[meanWaveDirectionWind]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[meanWavePeriodSwell]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[peakWaveDirection]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[peakWaveDirectionSwell]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[peakWaveDirectionWind]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[peakWavePeriod]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[peakWavePeriodSwell]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[peakWavePeriodSwim]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[significantSwellWaveHeight]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[significantWaveHeight]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[significantWavePeriod]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[significantWindWaveHeight]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[stokesDriftXVelocity]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[stokesDriftYVelocity]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[waveDirection]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[windDirection]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[windSpeed]) " +
+                   "     ,MIN([CatchWithBottomTempAndDistanceToLand].[distanceToLand]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[nitrogenSurface]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[nitrogenBottom]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[phosphateSurface]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[phosphateBottom]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[silicateSurface]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[silicateBottom]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[flagellatesSurface]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[flagellatesBottom]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[diatomsSurface]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[diatomsBottom]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[oxygenSurface]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[oxygenBottom]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[microplanctonSurface]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[microplanctonBottom]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[mesozoonplanctonSurface]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[mesozoonplanctonBottom]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[detriusSurface]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[detriusBottom]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[DEPTSurface]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[DEPTBottom]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[SISSurface]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[SISBottom]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[depth]) " +
+                   "     ,MIN([havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].primaryProductionBottom) " +
+        "   FROM [eSushi_analysis_data].[dbo].[CatchWithBottomTempAndDistanceToLand] " +
+        " 	LEFT OUTER JOIN [eSushi_analysis_data].[dbo].[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values] " +
+        " 		ON [CatchWithBottomTempAndDistanceToLand].FKHaul = [havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].PKHaul  " +
+        "   WHERE Launch_DateTime <  '" + str(requestedDate) + "'" +
+                   " AND [CatchWithBottomTempAndDistanceToLand].[Longitude] BETWEEN -5.970333 AND 52.33 " +
+                   " AND [CatchWithBottomTempAndDistanceToLand].[Latitude] BETWEEN 17.73333 AND 79.84 ")
+
+    for row in cursor.fetchall():
+        SalinityMax, SalinityMin = (float(row[0]), float(row[47]))
+        TemperatureMax, TemperatureMin = (float(row[1]), float(row[48]))
+        BottomTemperatureMax, BottomTemperatureMin = (float(row[2]), float(row[49]))
+        MoonPhaseMax, MoonPhaseMin = (float(row[3]), float(row[50]))
+        meanWaveDirectionSwellMax, meanWaveDirectionSwellMin = (float(row[4]), float(row[51]))
+        meanWaveDirectionWindMax, meanWaveDirectionWindMin = (float(row[5]), float(row[52]))
+        meanWavePeriodSwellMax, meanWavePeriodSwellMin = (float(row[6]), float(row[53]))
+        peakWaveDirectionMax, peakWaveDirectionMin = (float(row[7]), float(row[54]))
+        peakWaveDirectionSwellMax, peakWaveDirectionSwellMin = (float(row[8]), float(row[55]))
+        peakWaveDirectionWindMax, peakWaveDirectionWindMin = (float(row[9]), float(row[56]))
+        peakWavePeriodMax, peakWavePeriodMin = (float(row[10]), float(row[57]))
+        peakWavePeriodSwellMax, peakWavePeriodSwellMin = (float(row[11]), float(row[58]))
+        peakWavePeriodSwimMax, peakWavePeriodSwimMin = (float(row[12]), float(row[59]))
+        significantSwellWaveHeightMax, significantSwellWaveHeightMin = (float(row[13]), float(row[60]))
+        significantWaveHeightMax, significantWaveHeightMin = (float(row[14]), float(row[61]))
+        significantWavePeriodMax, significantWavePeriodMin = (float(row[15]), float(row[62]))
+        significantWindWaveHeightMax, significantWindWaveHeightMin = (float(row[16]), float(row[63]))
+        stokesDriftXVelocityMax, stokesDriftXVelocityMin = (float(row[17]), float(row[64]))
+        stokesDriftYVelocityMax, stokesDriftYVelocityMin = (float(row[18]), float(row[65]))
+        waveDirectionMax, waveDirectionMin = (float(row[19]), float(row[66]))
+        windDirectionMax, windDirectionMin = (float(row[20]), float(row[67]))
+        windSpeedMax, windSpeedMin = (float(row[21]), float(row[68]))
+        distanceToLandMax, distanceToLandMin = (float(row[22]), float(row[69]))
+        nitrogenSurfaceMax, nitrogenSurfaceMin = (float(row[23]), float(row[70]))
+        nitrogenBottomMax, nitrogenBottomMin = (float(row[24]), float(row[71]))
+        phosphateSurfaceMax, phosphateSurfaceMin = (float(row[25]), float(row[72]))
+        phosphateBottomMax, phosphateBottomMin = (float(row[26]), float(row[73]))
+        silicateSurfaceMax, silicateSurfaceMin = (float(row[27]), float(row[74]))
+        silicateBottomMax, silicateBottomMin = (float(row[28]), float(row[75]))
+        flagellatesSurfaceMax, flagellatesSurfaceMin = (float(row[29]), float(row[76]))
+        flagellatesBottomMax, flagellatesBottomMin = (float(row[30]), float(row[77]))
+        diatomsSurfaceMax, diatomsSurfaceMin = (float(row[31]), float(row[78]))
+        diatomsBottomMax, diatomsBottomMin = (float(row[32]), float(row[79]))
+        oxygenSurfaceMax, oxygenSurfaceMin = (float(row[33]), float(row[80]))
+        oxygenBottomMax, oxygenBottomMin = (float(row[34]), float(row[81]))
+        microplanctonSurfaceMax, microplanctonSurfaceMin = (float(row[35]), float(row[82]))
+        microplanctonBottomMax, microplanctonBottomMin = (float(row[36]), float(row[83]))
+        mesozoonplanctonSurfaceMax, mesozoonplanctonSurfaceMin = (float(row[37]), float(row[84]))
+        mesozoonplanctonBottomMax, mesozoonplanctonBottomMin = (float(row[38]), float(row[85]))
+        detriusSurfaceMax, detriusSurfaceMin = (float(row[39]), float(row[86]))
+        detriusBottomMax, detriusBottomMin = (float(row[40]), float(row[87]))
+        DEPTSurfaceMax, DEPTSurfaceMin = (float(row[41]), float(row[88]))
+        DEPTBottomMax, DEPTBottomMin = (float(row[42]), float(row[89]))
+        SISSurfaceMax, SISSurfaceMin = (float(row[43]), float(row[90]))
+        SISBottomMax, SISBottomMin = (float(row[44]), float(row[91]))
+        depthMax, depthMin = (float(row[45]), float(row[92]))
+        primaryProductionBottomMax, primaryProductionBottomMin = (float(row[46]), float(row[93]))
+
+    cursor.execute(" SELECT TOP " + str(recordCount) + " [CatchWithBottomTempAndDistanceToLand].[Latitude] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[Longitude] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[Salinity] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[Temperature] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[BottomTemperature] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[MoonPhase] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[meanWaveDirectionSwell] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[meanWaveDirectionWind] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[meanWavePeriodSwell] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[peakWaveDirection] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[peakWaveDirectionSwell] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[peakWaveDirectionWind] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[peakWavePeriod] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[peakWavePeriodSwell] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[peakWavePeriodSwim] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[significantSwellWaveHeight] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[significantWaveHeight] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[significantWavePeriod] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[significantWindWaveHeight] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[stokesDriftXVelocity] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[stokesDriftYVelocity] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[waveDirection] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[windDirection] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[windSpeed] " +
+        "       ,[CatchWithBottomTempAndDistanceToLand].[distanceToLand] " +
+        " 	    ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[nitrogenSurface] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[nitrogenBottom] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[phosphateSurface] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[phosphateBottom] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[silicateSurface] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[silicateBottom] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[flagellatesSurface] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[flagellatesBottom] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[diatomsSurface] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[diatomsBottom] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[oxygenSurface] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[oxygenBottom] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[microplanctonSurface] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[microplanctonBottom] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[mesozoonplanctonSurface] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[mesozoonplanctonBottom] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[detriusSurface] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[detriusBottom] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[DEPTSurface] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[DEPTBottom] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[SISSurface] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[SISBottom] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].[depth] " +
+        "       ,[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].primaryProductionBottom " +
+        "   FROM [eSushi_analysis_data].[dbo].[CatchWithBottomTempAndDistanceToLand] " +
+        " 	LEFT OUTER JOIN [eSushi_analysis_data].[dbo].[havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values] " +
+        " 		ON [CatchWithBottomTempAndDistanceToLand].FKHaul = [havfisk_hauls_with_closest_hexagon_coordinates_with_extracted_values].PKHaul  " +
+        "   WHERE Launch_DateTime <  '" + str(requestedDate) + "' " +
+                   " AND [CatchWithBottomTempAndDistanceToLand].[Longitude] BETWEEN -5.970333 AND 52.33 " +
+                   " AND [CatchWithBottomTempAndDistanceToLand].[Latitude] BETWEEN 17.73333 AND 79.84 " +
+        " ORDER BY Launch_DateTime DESC ")
+    count = 0
+    for row in cursor.fetchall():
+
+        lat, lon = (float(row[0]), float(row[1]))
+        # print([lat, lon])
+        a = []
+        a.append((float(row[0]) - latMin) / (latMax - latMin))
+        a.append((float(row[1]) - lonMin) / (lonMax - lonMin))
+        a.append((float(row[2]) - SalinityMin) / (SalinityMax - SalinityMin))
+        a.append((float(row[3]) - TemperatureMin) / (TemperatureMax - TemperatureMin))
+        a.append((float(row[4]) - BottomTemperatureMin) / (BottomTemperatureMax - BottomTemperatureMin))
+        a.append((float(row[5]) - MoonPhaseMin) / (MoonPhaseMax - MoonPhaseMin))
+        a.append((float(row[6]) - meanWaveDirectionSwellMin) / (meanWaveDirectionSwellMax - meanWaveDirectionSwellMin))
+        a.append((float(row[7]) - meanWaveDirectionWindMin) / (meanWaveDirectionWindMax - meanWaveDirectionWindMin))
+        a.append((float(row[8]) - meanWavePeriodSwellMin) / (meanWavePeriodSwellMax - meanWavePeriodSwellMin))
+        a.append((float(row[9]) - peakWaveDirectionMin) / (peakWaveDirectionMax - peakWaveDirectionMin))
+        a.append((float(row[10]) - peakWaveDirectionSwellMin) / (peakWaveDirectionSwellMax - peakWaveDirectionSwellMin))
+        a.append((float(row[11]) - peakWaveDirectionWindMin) / (peakWaveDirectionWindMax - peakWaveDirectionWindMin))
+        a.append((float(row[12]) - peakWavePeriodMin) / (peakWavePeriodMax - peakWavePeriodMin))
+        a.append((float(row[13]) - peakWavePeriodSwellMin) / (peakWavePeriodSwellMax - peakWavePeriodSwellMin))
+        a.append((float(row[14]) - peakWavePeriodSwimMin) / (peakWavePeriodSwimMax - peakWavePeriodSwimMin))
+        a.append((float(row[15]) - significantSwellWaveHeightMin) / (significantSwellWaveHeightMax - significantSwellWaveHeightMin))
+        a.append((float(row[16]) - significantWaveHeightMin) / (significantWaveHeightMax - significantWaveHeightMin))
+        a.append((float(row[17]) - significantWavePeriodMin) / (significantWavePeriodMax - significantWavePeriodMin))
+        a.append((float(row[18]) - significantWindWaveHeightMin) / (significantWindWaveHeightMax - significantWindWaveHeightMin))
+        a.append((float(row[19]) - stokesDriftXVelocityMin) / (stokesDriftXVelocityMax - stokesDriftXVelocityMin))
+        a.append((float(row[20]) - stokesDriftYVelocityMin) / (stokesDriftYVelocityMax - stokesDriftYVelocityMin))
+        a.append((float(row[21]) - waveDirectionMin) / (waveDirectionMax - waveDirectionMin))
+        a.append((float(row[22]) - windDirectionMin) / (windDirectionMax - windDirectionMin))
+        a.append((float(row[23]) - windSpeedMin) / (windSpeedMax - windSpeedMin))
+        a.append((float(row[24]) - distanceToLandMin) / (distanceToLandMax - distanceToLandMin))
+        a.append((float(row[25]) - nitrogenSurfaceMin) / (nitrogenSurfaceMax - nitrogenSurfaceMin))
+        a.append((float(row[26]) - nitrogenBottomMin) / (nitrogenBottomMax - nitrogenBottomMin))
+        a.append((float(row[27]) - phosphateSurfaceMin) / (phosphateSurfaceMax - phosphateSurfaceMin))
+        a.append((float(row[28]) - phosphateBottomMin) / (phosphateBottomMax - phosphateBottomMin))
+        a.append((float(row[29]) - silicateSurfaceMin) / (silicateSurfaceMax - silicateSurfaceMin))
+        a.append((float(row[30]) - silicateBottomMin) / (silicateBottomMax - silicateBottomMin))
+        a.append((float(row[31]) - flagellatesSurfaceMin) / (flagellatesSurfaceMax - flagellatesSurfaceMin))
+        a.append((float(row[32]) - flagellatesBottomMin) / (flagellatesBottomMax - flagellatesBottomMin))
+        a.append((float(row[33]) - diatomsSurfaceMin) / (diatomsSurfaceMax - diatomsSurfaceMin))
+        a.append((float(row[34]) - diatomsBottomMin) / (diatomsBottomMax - diatomsBottomMin))
+        a.append((float(row[35]) - oxygenSurfaceMin) / (oxygenSurfaceMax - oxygenSurfaceMin))
+        a.append((float(row[36]) - oxygenBottomMin) / (oxygenBottomMax - oxygenBottomMin))
+        a.append((float(row[37]) - microplanctonSurfaceMin) / (microplanctonSurfaceMax - microplanctonSurfaceMin))
+        a.append((float(row[38]) - microplanctonBottomMin) / (microplanctonBottomMax - microplanctonBottomMin))
+        a.append((float(row[39]) - mesozoonplanctonSurfaceMin) / (mesozoonplanctonSurfaceMax - mesozoonplanctonSurfaceMin))
+        a.append((float(row[40]) - mesozoonplanctonBottomMin) / (mesozoonplanctonBottomMax - mesozoonplanctonBottomMin))
+        a.append((float(row[41]) - detriusSurfaceMin) / (detriusSurfaceMax - detriusSurfaceMin))
+        a.append((float(row[42]) - detriusBottomMin) / (detriusBottomMax - detriusBottomMin))
+        a.append((float(row[43]) - DEPTSurfaceMin) / (DEPTSurfaceMax - DEPTSurfaceMin))
+        a.append((float(row[44]) - DEPTBottomMin) / (DEPTBottomMax - DEPTBottomMin))
+        a.append((float(row[45]) - SISSurfaceMin) / (SISSurfaceMax - SISSurfaceMin))
+        a.append((float(row[46]) - SISBottomMin) / (SISBottomMax - SISBottomMin))
+        a.append((float(row[47]) - depthMin) / (depthMax - depthMin))
+        a.append((float(row[48]) - primaryProductionBottomMin) / (primaryProductionBottomMax - primaryProductionBottomMin))
+        input_data = np.array(a)
+        # print(input_data)
+        # print(input_data.shape[0])
+        transposed_input = input_data.reshape((1, input_data.shape[0]))
+        # print(transposed_input)
+        # exit()
+        prediction = fish_prediction_network.predict(transposed_input)
+        feature = geojson_feature(lon, lat)
+        feature["properties"]["p_low"] = float(prediction[0][0])
+        feature["properties"]["p_mid"] = float(prediction[0][1])
+        feature["properties"]["p_high"] = float(prediction[0][2])
+        retval.append(feature)
+        # print(float(row[0]))
+        # print(float(row[1]))
+        # print(str(float(row[2])))
+        # print(a[:5])
+        # print(float(prediction[0][0]))
+        # print(float(prediction[0][1]))
+        # print(str(float(prediction[0][2])) + "\n")
+        count += 1
+
+        # if count == 3:
+        #     exit()
+
+        # lat, lon = reverse_normalization(float(dataline[0]), float(dataline[1]))
+        # input_data = np.array(dataline)
+        # # print(input_data)
+        # # print(input_data.shape[0])
+        # transposed_input = input_data.reshape((1, input_data.shape[0]))
+        # # print(transposed_input)
+        # prediction = fish_prediction_network.predict(transposed_input)
+        # feature = geojson_feature(lon, lat)
+        # feature["properties"]["p_low"] = float(prediction[0][0])
+        # feature["properties"]["p_mid"] = float(prediction[0][1])
+        # feature["properties"]["p_high"] = float(prediction[0][2])
+        # print(float(prediction[0][0]))
+        # print(float(prediction[0][1]))
+        # print(str(float(prediction[0][2])) + "\n")
+        # retval.append(feature)
+
+    # print (retval)
     return json.dumps({
         'type': 'FeatureCollection',
         'features': retval,
     })
-    # return json.dumps(retval)
 
+
+@app.route("/load_catch_data")
+def get_catch_data_for_date():
+    retval = []
+
+    cnxn = pyodbc.connect(r'Driver={SQL Server};Server=.\SQLEXPRESS;Database=unified schema;Trusted_Connection=yes;')
+    cursor = cnxn.cursor()
+    haulId = None
+    feature = None
+
+    requestedDate = request.args.get('date')
+    print(requestedDate)
+
+    if requestedDate is None:
+        return json.dumps({
+        'type': 'FeatureCollection',
+        'features': [],
+    })
+
+    cursor.execute("SELECT Haul.LaunchPosLatitude " +
+                        ",Haul.LaunchPosLongitude " +
+                        ",Species.NName " +
+                        ",Catch.Quantity " +
+                        ",Haul.PKHaul " +
+                        ",Vessel.Name " +
+                   "FROM [Unified schema].[dbo].[Haul] " +
+                        "INNER JOIN [Unified schema].[dbo].[Catch] " +
+                            "ON Catch.FKHaul = Haul.PKHaul " +
+                        "INNER JOIN [Unified schema].[dbo].[Species] " +
+                            "ON Catch.FKSpecies = Species.PKSpecies " +
+                        "INNER JOIN [Unified schema].[dbo].[Trip] " +
+                            "ON Haul.FKTrip = Trip.PKTrip " +
+                        "INNER JOIN [Unified schema].[dbo].[Vessel] " +
+                            "ON Trip.FKVessel = Vessel.PKVessel " +
+                    " WHERE DATEDIFF(dd, Haul.LaunchDateTime, '" + str(requestedDate) + "') = 0 " +
+                    " AND Haul.[FKDatabaseSource] = 1 " +
+                    "ORDER BY Haul.PKHaul")
+    for row in cursor.fetchall():
+        if row[4] != haulId:
+            if feature is not None:
+                retval.append(feature)
+            feature = geojson_feature(float(row[1]), float(row[0]))
+            feature["properties"]["total_quantity"] = 0
+            feature["properties"]["species_and_catch"] = []
+            haulId = row[4]
+        feature["properties"]["total_quantity"] = feature["properties"]["total_quantity"] + row[3]
+        feature["properties"]["haul_id"] = row[4]
+        feature["properties"]["species_and_catch"].append([row[2], row[3]])
+        feature["properties"]["vesselName"] = row[5]
+
+    return json.dumps({
+        'type': 'FeatureCollection',
+        'features': retval,
+    })
 
 @app.route("/load_sinmod_geojson_temp")
 def get_sinmod_geojson_temp_data():

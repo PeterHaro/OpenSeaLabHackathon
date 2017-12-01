@@ -25,6 +25,7 @@
     <link rel="alternate" hreflang="x-default" href="https://peterharo.github.io/"/>
     <link rel="alternate" hreflang="no" href="https://peterharo.github.io//no"/>
     <link rel="stylesheet" href="https://openlayers.org/en/v4.5.0/css/ol.css" type="text/css">
+    <link href="https://cdn.jsdelivr.net/npm/ol-contextmenu@latest/dist/ol-contextmenu.min.css" rel="stylesheet">
     <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
     <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
     <script src="https://openlayers.org/en/v4.5.0/build/ol.js"></script>
@@ -85,6 +86,10 @@
         .ol-popup-closer:after {
             content: "✖";
         }
+
+        #popup {
+          padding-bottom: 45px;
+        }
     </style>
 
 </head>
@@ -119,14 +124,24 @@
         <a href="#" id="popup-closer" class="ol-popup-closer"></a>
         <div id="popup-content"></div>
     </div>
+    <div id="date-input-container-context" class="ol-popup">
+        <a href="#" id="popup-closer-context" class="ol-popup-closer"></a>
+        Dato: <input id="date-input-field-context" type="text" name="date-input"><br>
+        <button onclick="JavaScript:getDateData()">Hent data</button>
+    </div>
     <!--<canvas id="windyMap" class="fill"></canvas>-->
     <!--<div id="olMap" class="fill"></div>-->
 </div>
+
+<div id="info"></div>
+
+
 <!-- JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"
         integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
 <script src="{{ url_for('static', filename='javascript/OpenSeaLab/windy.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/ol-contextmenu"></script>
 <script src="{{ url_for('static', filename='javascript/OpenSeaLab/OpenLayersMapClient.js') }}"></script>
 <script>
     // Initialize collapse button
