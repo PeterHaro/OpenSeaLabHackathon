@@ -11,8 +11,8 @@ from pyproj import Proj, transform
 class DataScraper:
     """ Datascraper class holding the couchDB instance """
     def __init__(self):
-        self.user='pauran'
-        self.passwd="la8pv"
+        self.user='user'  # Sett egne her
+        self.passwd='passwd'
         self.url="localhost"
         self.port="5984"
         self.couchserver = couchdb.Server("http://%s:%s@localhost:5984/" % (self.user, self.passwd))
